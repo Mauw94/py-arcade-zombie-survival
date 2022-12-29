@@ -3,12 +3,7 @@ Platformer Game
 """
 import arcade
 from views.main_menu import MainMenu
-
-# Constants
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 650
-SCREEN_TITLE = "Platformer"
-
+from helpers.constants import Constants
 
 class MyGame(arcade.Window):
     """
@@ -18,7 +13,7 @@ class MyGame(arcade.Window):
     def __init__(self):
 
         # Call the parent class and set up the window
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        super().__init__(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, Constants.SCREEN_TITLE)
 
         arcade.set_background_color(arcade.csscolor.CORNFLOWER_BLUE)
 
@@ -35,8 +30,8 @@ class MyGame(arcade.Window):
 
 def main():
     """Main function"""
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    menu_view = MainMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
+    window = arcade.Window(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT, Constants.SCREEN_TITLE)
+    menu_view = MainMenu(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT)
     window.show_view(menu_view)
     # window = MyGame()
     # window.setup()

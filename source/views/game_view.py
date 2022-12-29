@@ -2,25 +2,10 @@ import arcade
 import os
 
 from entities.player_character import PlayerCharacter
+from helpers.constants import Constants
 
 class GameView(arcade.View):
-    LAYER_NAME_MOVING_PLATFORMS = "Moving Platforms"
-    LAYER_NAME_PLATFORMS = "Platforms"
-    LAYER_NAME_COINS = "Coins"
-    LAYER_NAME_BACKGROUND = "Background"
-    LAYER_NAME_LADDERS = "Ladders"
-    LAYER_NAME_PLAYER = "Player"
-    LAYER_NAME_ENEMIES = "Enemies"
-    LAYER_NAME_BULLETS = "Bullets"
-    
-    TILE_SCALING = 0.5
-    GRAVITY = 1.5
-    SPRITE_PIXEL_SIZE = 128
-    GRID_PIXEL_SIZE = SPRITE_PIXEL_SIZE * TILE_SCALING
-    
-    PLAYER_START_X = 2
-    PLAYER_START_Y = 1
-    
+ 
     def __init__(self):
         super().__init__()
         
@@ -59,21 +44,21 @@ class GameView(arcade.View):
         map_name = ":resources:tiled_maps/map_with_ladders.json"
          
         layer_options = {
-            self.LAYER_NAME_PLATFORMS: {
+            Constants.LAYER_NAME_PLATFORMS: {
                 "use_spatial_hash": True
             },     
-            self.LAYER_NAME_MOVING_PLATFORMS: {
+            Constants.LAYER_NAME_MOVING_PLATFORMS: {
                 "use_spatial_hash": True
             },
-            self.LAYER_NAME_LADDERS: {
+            Constants.LAYER_NAME_LADDERS: {
                 "use_spatial_hash": True
             },
-            self.LAYER_NAME_COINS: {
+            Constants.LAYER_NAME_COINS: {
                 "use_spatial_hash": True
             },
         }
         
-        self.tile_map = arcade.load_tilemap(map_name, self.TILE_SCALING, layer_options)
+        self.tile_map = arcade.load_tilemap(map_name, Constants.TILE_SCALING, layer_options)
         # Initiate New Scene with our TileMap, this will automatically add all layers
         # from the map as SpriteLists in the scene in the proper order.
         self.scene = arcade.Scene.from_tilemap(self.tile_map)
@@ -85,14 +70,14 @@ class GameView(arcade.View):
         # Create player
         self.player_sprite = PlayerCharacter()
         self.player_sprite.center_x = (
-            self.tile_map.tile_width * self.TILE_SCALING * self.PLAYER_START_X
+            self.tile_map.tile_width * Constants.TILE_SCALING * Constants.PLAYER_START_X
             )
         self.player_sprite.center_y = (
-            self.tile_map.tile_height * self.TILE_SCALING * self.PLAYER_START_Y
+            self.tile_map.tile_height * Constants.TILE_SCALING * Constants.PLAYER_START_Y
         )
-        self.scene.add_sprite(self.LAYER_NAME_PLAYER, self.player_sprite)
+        self.scene.add_sprite(Constants.LAYER_NAME_PLAYER, self.player_sprite)
         
-        self.end_of_map = self.tile_map.width * self.GRID_PIXEL_SIZE
+        self.end_of_map = self.tile_map.width * Constants.GRID_PIXEL_SIZE
         
         # TODO add enemies
         
@@ -101,10 +86,10 @@ class GameView(arcade.View):
         
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite,
-            platforms=self.scene[self.LAYER_NAME_MOVING_PLATFORMS],
-            gravity_constant=self.GRAVITY,
-            ladders=self.scene[self.LAYER_NAME_LADDERS],
-            walls=self.scene[self.LAYER_NAME_PLATFORMS]
+            platforms=self.scene[Constants.LAYER_NAME_MOVING_PLATFORMS],
+            gravity_constant=Constants.GRAVITY,
+            ladders=self.scene[Constants.LAYER_NAME_LADDERS],
+            walls=self.scene[Constants.LAYER_NAME_PLATFORMS]
         )
     
     def on_show_view(self):
