@@ -157,22 +157,53 @@ class GameView(arcade.View):
             delta_time,
             [
                 Constants.LAYER_NAME_COINS,
-                Constants.LAYER_NAME_ENEMIES,
+                Constants.LAYER_NAME_BACKGROUND,
                 Constants.LAYER_NAME_PLAYER,
-                Constants.LAYER_NAME_BACKGROUND
+                Constants.LAYER_NAME_ENEMIES,
             ],
         )
-        
+
         # Update moving platforms, enemies and bullets
         self.scene.update(
-            [Constants.LAYER_NAME_ENEMIES, Constants.LAYER_NAME_MOVING_PLATFORMS, Constants.LAYER_NAME_BULLETS]
+            [Constants.LAYER_NAME_ENEMIES, Constants.LAYER_NAME_MOVING_PLATFORMS,
+                Constants.LAYER_NAME_BULLETS]
         )
-        
-        # TODO See if enemy hit a boundary and needs to reverse direction
+
+        # See if enemy hit a boundary and needs to reverse direction
+        for enemy in self.scene[Constants.LAYER_NAME_ENEMIES]:
+            if enemy.boundary_right and enemy.right > enemy.boundary_right and enemy.change_x > 0:
+                enemy.change_x *= -1
+
+            if enemy.boundary_left and enemy.left < enemy.boundary_left and enemy.change_x < 0:
+                enemy.change_x *= -1
+
         # TODO Create bullet hit_list
         # TODO Remove bullet from scene
         # TODO Check player collisions
-        
+        player_collision_list = arcade.check_for_collision_with_lists(
+            self.player_sprite,
+            [
+                self.scene[Constants.LAYER_NAME_COINS],
+                self.scene[Constants.LAYER_NAME_ENEMIES]
+            ]
+        )
+
+        for collision in player_collision_list:
+            if self.scene[Constants.LAYER_NAME_ENEMIES] in collision.sprite_lists:
+                arcade.play_sound(self.game_over)
+                game_view = GameOverView()
+                self.window.show_view(game_view)
+                return
+            else:
+                if "Points" not in collision.properties:
+                    print("Warning, collected a coin without a Points property")
+                else:
+                    points = int(collision.properties["Points"])
+                    self.score += points
+                # Remove the coin
+                collision.remove_from_sprite_lists()
+                arcade.play_sound(self.collect_coin_sound)
+
         self.center_camera_to_player()
 
     def center_camera_to_player(self, speed=0.2):
@@ -203,3 +234,25 @@ class GameView(arcade.View):
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         self.handle_input.on_mouse_scroll(self, x, y, scroll_x, scroll_y)
+
+
+class GameOverView(arcade.View):
+
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.BLACK)
+
+    def on_draw(self):
+        self.clear()
+
+        arcade.draw_text(
+            "Game Over - Click to restart",
+            Constants.SCREEN_WIDTH / 2,
+            Constants.SCREEN_HEIGHT / 2,
+            arcade.color.WHITE,
+            30,
+            anchor_x="center"
+        )
+
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        game_view = GameView()
+        self.window.show_view(game_view)
