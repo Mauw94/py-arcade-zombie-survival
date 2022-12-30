@@ -152,6 +152,39 @@ class GameView(arcade.View):
 
         self.physics_engine.update()
 
+        if self.physics_engine.can_jump():
+            self.player_sprite.jumping = False
+        else:
+            self.player_sprite.jumping = True
+        
+        if self.physics_engine.is_on_ladder() and not self.physics_engine.can_jump():
+            self.player_spite.is_on_ladder = True
+            self.handle_input.process_keychange(self)
+        else:
+            self.player_sprite.is_on_ladder = False
+            self.handle_input.process_keychange(self)
+        
+        if self.can_shoot:
+            if self.shoot_pressed:
+                arcade.play_sound(self.shoot_sound)
+                bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", Constants.SPRITE_SCALING_LASER)
+                if self.player_sprite.facing_direction == Constants.RIGHT_FACING:
+                    bullet.change_x += Constants.BULLET_SPEED
+                else:
+                    bullet.change_x -= Constants.BULLET_SPEED
+                
+                bullet.center_x = self.player_sprite.center_x
+                bullet.center_y = self.player_sprite.center_y
+                
+                self.scene.add_sprite(Constants.LAYER_NAME_BULLETS, bullet)
+                
+                self.can_shoot = False
+        else:
+            self.shoot_timer += 1
+            if self.shoot_timer == Constants.SHOOT_SPEED:
+                self.can_shoot = True
+                self.shoot_timer = 0
+            
         # Update animations
         self.scene.update_animation(
             delta_time,
@@ -177,9 +210,32 @@ class GameView(arcade.View):
             if enemy.boundary_left and enemy.left < enemy.boundary_left and enemy.change_x < 0:
                 enemy.change_x *= -1
 
-        # TODO Create bullet hit_list
-        # TODO Remove bullet from scene
-        # TODO Check player collisions
+        # Check for bullet collisions with enemies or platforms
+        for bullet in self.scene[Constants.LAYER_NAME_BULLETS]:
+            hit_list = arcade.check_for_collision_with_lists(
+                bullet, 
+                [
+                    self.scene[Constants.LAYER_NAME_ENEMIES], 
+                    self.scene[Constants.LAYER_NAME_PLATFORMS],
+                    self.scene[Constants.LAYER_NAME_MOVING_PLATFORMS]
+                ]
+            )
+            
+            if hit_list:
+                bullet.remove_from_sprite_lists()    
+                for collision in hit_list:
+                    if self.scene[Constants.LAYER_NAME_ENEMIES] in collision.sprite_lists:
+                        collision.health -= Constants.BULLET_DAMAGE
+                        if collision.health <= 0:
+                            collision.remove_from_sprite_lists()
+                            self.score += 10
+                        arcade.play_sound(self.hit_sound)
+                return
+            
+            # Remove bullet if off screen
+            if bullet.right < 0 or bullet.left > (self.tile_map.width * self.tile_map.tile_width) * Constants.TILE_SCALING:
+                bullet.remove_from_sprite_lists()
+            
         player_collision_list = arcade.check_for_collision_with_lists(
             self.player_sprite,
             [
